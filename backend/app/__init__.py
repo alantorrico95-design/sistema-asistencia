@@ -14,11 +14,14 @@ def create_app():
     from backend.config import Config
     app.config.from_object(Config)
     
-    CORS(app)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     db.init_app(app)
 
-    with app.app_context():
-        from backend.app import rutas
-        app.register_blueprint(rutas.bp)
+    @app.route('/')
+    def health_check():
+        return "Servidor de Asistencia Activo", 200
+
+    from backend.app.rutas import bp as api_bp
+    app.register_blueprint(api_bp)
         
     return app

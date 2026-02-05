@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
               Text(
-                "Servidor: ${ApiService.baseUrl.replaceAll('http://', '').replaceAll(':5000', '')}",
+                "Servidor: ${ApiService.baseUrl.replaceFirst('http://', '').replaceFirst('https://', '').replaceAll(':5000', '')}",
                 style: const TextStyle(color: Colors.white24, fontSize: 12),
               ),
             ],
@@ -160,7 +160,8 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showIPConfig() {
     final ipController = TextEditingController(
       text: ApiService.baseUrl
-          .replaceAll('http://', '')
+          .replaceFirst('http://', '')
+          .replaceFirst('https://', '')
           .replaceAll(':5000', ''),
     );
     showDialog(

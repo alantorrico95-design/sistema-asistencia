@@ -10,7 +10,7 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final savedIp = prefs.getString('server_ip');
     if (savedIp != null && savedIp.isNotEmpty) {
-      baseUrl = 'http://$savedIp:5000';
+      _setBaseUrl(savedIp);
     }
   }
 
@@ -18,7 +18,26 @@ class ApiService {
   static Future<void> updateIp(String newIp) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('server_ip', newIp);
-    baseUrl = 'http://$newIp:5000';
+    _setBaseUrl(newIp);
+  }
+
+  static void _setBaseUrl(String input) {
+    if (input.contains('onrender.com') || input.startsWith('http')) {
+      // Si ya tiene el protocolo o es de Render, lo tomamos como URL completa o base
+      if (!input.startsWith('http')) {
+        baseUrl = 'https://$input';
+      } else {
+        baseUrl = input;
+      }
+      // Eliminar puerto 5000 si es de Render (ellos usan 80/443 por defecto fuera)
+      if (baseUrl.contains('onrender.com') && baseUrl.contains(':5000')) {
+        baseUrl = baseUrl.replaceAll(':5000', '');
+      }
+    } else {
+      // Si es una IP local, usamos el formato antiguo
+      baseUrl = 'http://$input:5000';
+    }
+    print("ApiService BaseURL set to: $baseUrl");
   }
 
   Future<Map<String, dynamic>> marcarAsistencia(String dni) async {
@@ -29,7 +48,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'dni': dni}),
           )
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: 60)); // Aumentado para Render Free
       return jsonDecode(response.body);
     } catch (e) {
       return {'error': 'Error de conexión: $e'};
@@ -47,7 +66,7 @@ class ApiService {
               'password': password.trim(),
             }),
           )
-          .timeout(const Duration(seconds: 7));
+          .timeout(const Duration(seconds: 60)); // Aumentado para Render Free
       return jsonDecode(response.body);
     } catch (e) {
       print("DEBUG LOGIN ERROR: $e");
